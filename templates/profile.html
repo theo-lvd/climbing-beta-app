@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <article>
+        <header>
+            <h2>{{ user.username }}'s Profile</h2>
+        </header>
+        <p><strong>Height:</strong> {{ user.height or 'Not specified' }} cm</p>
+        <p><strong>Ape Index:</strong> {{ user.ape_index or 'Not specified' }}</p>
+    </article>
+
+    <hr>
+
+    <h3>Betas Created by {{ user.username }}</h3>
+    {% if betas %}
+        <table>
+            <thead>
+                <tr>
+                    <th scope="col">Name</th>
+                    <th scope="col">Grade</th>
+                    <th scope="col">Location</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for beta in betas %}
+                <tr>
+                    <td><a href="{{ url_for('beta_detail', beta_id=beta.id) }}">{{ beta.name }}</a></td>
+                    <td>{{ beta.grade }}</td>
+                    <td>{{ beta.location }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>{{ user.username }} hasn't created any betas yet.</p>
+    {% endif %}
+{% endblock %}

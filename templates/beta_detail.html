@@ -8,7 +8,7 @@
     <h1>{{ beta.name }}</h1>
     <h2>Grade: {{ beta.grade }}</h2>
     <p><strong>Location:</strong> {{ beta.location }}</p>
-    <p><strong>Created by:</strong> {{ beta.author.username }}</p>
+    <p><strong>Created by:</strong> <a href="{{ url_for('profile', username=beta.author.username) }}">{{ beta.author.username }}</a></p>
 
     <img src="{{ url_for('static', filename='uploads/' + beta.image_file) }}" alt="Photo of {{ beta.name }}">
 

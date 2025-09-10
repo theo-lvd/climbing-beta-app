@@ -268,6 +268,13 @@ def edit_profile():
         form.ape_index.data = current_user.ape_index
     return render_template('edit_profile.html', title='Edit Profile', form=form)
 
+# --- New Route for public user profiles ---
+@app.route('/profile/<string:username>')
+def profile(username):
+    # Find the user by their username, or show a 404 error if not found
+    user = User.query.filter_by(username=username).first_or_404()
+    # The user's betas are automatically available via the relationship
+    return render_template('profile.html', user=user, betas=user.betas)
 
 if __name__ == '__main__':
     app.run(debug=True)
