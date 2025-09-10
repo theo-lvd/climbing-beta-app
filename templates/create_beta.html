@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+    <h1>Create a New Beta</h1>
+    <form method="POST" action="" enctype="multipart/form-data"> 
+        {{ form.hidden_tag() }}
+
+        <div class="form-field">
+            {{ form.name.label }}
+            {{ form.name(size=30) }}
+        </div>
+        <div class="form-field">
+            {{ form.location.label }}
+            {{ form.location(size=30) }}
+        </div>
+        <div class="form-field">
+            {{ form.grade.label }}
+            {{ form.grade(size=10) }}
+        </div>
+        <div class="form-field">
+            {{ form.picture.label }}
+            {{ form.picture() }}
+        </div>
+        <div class="form-field">
+            {{ form.submit() }}
+        </div>
+    </form>
+{% endblock %}

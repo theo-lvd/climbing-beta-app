@@ -1,0 +1,9 @@
+# Virtual Environment
+venv/
+
+# Instance Folder (contains the database)
+instance/
+
+# Python cache files
+__pycache__/
+*.pyc

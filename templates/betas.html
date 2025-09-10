@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>All Created Betas</h1>
+    <a href="{{ url_for('home') }}">Back to Home</a>
+    <hr>
+
+    {% if betas %}
+        {% for beta in betas %}
+            <div class="beta-card">
+                <a href="{{ url_for('beta_detail', beta_id=beta.id) }}">
+                    <h2>{{ beta.name }} - {{ beta.grade }}</h2>
+                </a>
+    
+                <p><strong>Location:</strong> {{ beta.location }}</p>
+                <p><strong>Created by:</strong> {{ beta.author.username }}</p>
+                <img src="{{ url_for('static', filename='uploads/' + beta.image_file) }}" alt="Photo of {{ beta.name }}">
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No betas have been created yet. Be the first!</p>
+    {% endif %}
+{% endblock %}
