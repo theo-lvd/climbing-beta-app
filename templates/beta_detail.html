@@ -11,6 +11,17 @@
     <p><strong>Created by:</strong> <a href="{{ url_for('profile', username=beta.author.username) }}">{{ beta.author.username }}</a></p>
 
     <img src="{{ url_for('static', filename='uploads/' + beta.image_file) }}" alt="Photo of {{ beta.name }}">
+    <hr>
+    <div>
+        <p>{{ beta.likers.count() }} Likes</p>
+        {% if current_user.is_authenticated %}
+            {% if beta in current_user.liked_betas %}
+                <a href="{{ url_for('unlike_beta', beta_id=beta.id) }}" role="button" class="secondary">Unlike</a>
+            {% else %}
+                <a href="{{ url_for('like_beta', beta_id=beta.id) }}" role="button">Like</a>
+            {% endif %}
+        {% endif %}
+    </div>
 
     {% if beta.author == current_user %}
     <hr>

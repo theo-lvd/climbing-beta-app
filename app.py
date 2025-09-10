@@ -28,6 +28,13 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 # --- Database Models ---
+
+# NEW association table for the many-to-many relationship
+likes = db.Table('likes',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('beta_id', db.Integer, db.ForeignKey('beta.id'), primary_key=True)
+)
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
@@ -35,17 +42,18 @@ class User(db.Model, UserMixin):
     password_hash = db.Column(db.String(120), nullable=False)
     height = db.Column(db.Integer, nullable=True)
     ape_index = db.Column(db.Float, nullable=True)
-    # Relationship: A user can have many betas
     betas = db.relationship('Beta', backref='author', lazy=True)
+    # NEW relationship to access the betas a user has liked
+    liked_betas = db.relationship('Beta', secondary=likes, backref=db.backref('likers', lazy='dynamic'))
 
 class Beta(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     location = db.Column(db.String(120), nullable=False)
     grade = db.Column(db.String(20), nullable=False)
-    # --- New field for the photo ---
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    # We don't need to add anything here, the backref in User handles it
 
 # --- Web Forms ---
 class RegistrationForm(FlaskForm):
@@ -275,6 +283,31 @@ def profile(username):
     user = User.query.filter_by(username=username).first_or_404()
     # The user's betas are automatically available via the relationship
     return render_template('profile.html', user=user, betas=user.betas)
+
+# --- New Routes for Liking/Unliking Betas ---
+@app.route('/like/<int:beta_id>')
+@login_required
+def like_beta(beta_id):
+    beta = Beta.query.get_or_404(beta_id)
+    if beta not in current_user.liked_betas:
+        current_user.liked_betas.append(beta)
+        db.session.commit()
+        flash('You have liked this beta!', 'success')
+    else:
+        flash('You have already liked this beta.', 'info')
+    return redirect(url_for('beta_detail', beta_id=beta.id))
+
+@app.route('/unlike/<int:beta_id>')
+@login_required
+def unlike_beta(beta_id):
+    beta = Beta.query.get_or_404(beta_id)
+    if beta in current_user.liked_betas:
+        current_user.liked_betas.remove(beta)
+        db.session.commit()
+        flash('You have unliked this beta.', 'success')
+    else:
+        flash('You have not liked this beta yet.', 'info')
+    return redirect(url_for('beta_detail', beta_id=beta.id))
 
 if __name__ == '__main__':
     app.run(debug=True)
