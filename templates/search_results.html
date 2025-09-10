@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1>Search Results for "{{ query }}"</h1>
+    <a href="{{ url_for('betas') }}">Back to All Betas</a>
+    <hr>
+
+    {% if results %}
+        {% for beta in results %}
+            <article class="beta-card">
+                <header>
+                    <a href="{{ url_for('beta_detail', beta_id=beta.id) }}">
+                        <strong>{{ beta.name }} - {{ beta.grade }}</strong>
+                    </a>
+                </header>
+                <p><strong>Location:</strong> {{ beta.location }}</p>
+                <p><strong>Created by:</strong> <a href="{{ url_for('profile', username=beta.author.username) }}">{{ beta.author.username }}</a></p>
+                <img src="{{ url_for('static', filename='uploads/' + beta.image_file) }}" alt="Photo of {{ beta.name }}" style="max-width: 400px; height: auto;">
+            </article>
+        {% endfor %}
+    {% else %}
+        <p>No results found for your search.</p>
+    {% endif %}
+
+{% endblock %}

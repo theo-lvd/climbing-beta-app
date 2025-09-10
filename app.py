@@ -11,6 +11,8 @@ from flask_wtf.file import FileField, FileAllowed
 from flask import request
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, FloatField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
+from thefuzz import fuzz
+
 
 # --- App Configuration ---
 app = Flask(__name__)
@@ -308,6 +310,25 @@ def unlike_beta(beta_id):
     else:
         flash('You have not liked this beta yet.', 'info')
     return redirect(url_for('beta_detail', beta_id=beta.id))
+
+# --- New Route for Search ---
+@app.route('/search', methods=['POST'])
+def search():
+    query = request.form['searched']
+    # Get all betas to search through
+    all_betas = Beta.query.all()
+    results = []
+    # A threshold for how similar the strings should be (0-100)
+    # You can adjust this value to make the search more or less strict.
+    similarity_threshold = 60
+
+    for beta in all_betas:
+        # Compare the beta's name to the search query
+        ratio = fuzz.ratio(beta.name.lower(), query.lower())
+        if ratio >= similarity_threshold:
+            results.append(beta)
+
+    return render_template('search_results.html', query=query, results=results)
 
 if __name__ == '__main__':
     app.run(debug=True)
