@@ -2,8 +2,8 @@ import os
 from flask import Flask, render_template, flash, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField, BooleanField
-from wtforms.validators import DataRequired, Email, EqualTo
+from wtforms import StringField, PasswordField, SubmitField, BooleanField, TextAreaField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user, login_required
@@ -12,6 +12,7 @@ from flask import request
 from wtforms import StringField, PasswordField, SubmitField, BooleanField, IntegerField, FloatField
 from wtforms.validators import DataRequired, Email, EqualTo, ValidationError
 from thefuzz import fuzz
+from flask_migrate import Migrate
 
 
 # --- App Configuration ---
@@ -22,6 +23,7 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['UPLOAD_FOLDER'] = 'static/uploads' # Folder for images
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 login_manager = LoginManager(app)
 login_manager.login_view = 'login'
 
@@ -31,7 +33,7 @@ def load_user(user_id):
 
 # --- Database Models ---
 
-# NEW association table for the many-to-many relationship
+# Association table for the many-to-many relationship
 likes = db.Table('likes',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
     db.Column('beta_id', db.Integer, db.ForeignKey('beta.id'), primary_key=True)
@@ -54,8 +56,8 @@ class Beta(db.Model):
     location = db.Column(db.String(120), nullable=False)
     grade = db.Column(db.String(20), nullable=False)
     image_file = db.Column(db.String(20), nullable=False, default='default.jpg')
+    description = db.Column(db.Text, nullable = True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-    # We don't need to add anything here, the backref in User handles it
 
 # --- Web Forms ---
 class RegistrationForm(FlaskForm):
@@ -77,15 +79,16 @@ class BetaForm(FlaskForm):
     location = StringField('Location', validators=[DataRequired()])
     grade = StringField('Grade', validators=[DataRequired()])
     picture = FileField('Main Picture of the Climb', validators=[DataRequired(), FileAllowed(['jpg', 'png'])])
+    description = TextAreaField('Description')
     submit = SubmitField('Submit') # Changed text to be more generic
 
 # EditBetaForm
 class EditBetaForm(FlaskForm):
-    name = StringField('Boulder/Route Name', validators=[DataRequired()])
-    location = StringField('Location', validators=[DataRequired()])
-    grade = StringField('Grade', validators=[DataRequired()])
-    # The picture field is now optional because we removed DataRequired()
+    name = StringField('Update Boulder/Route Name', validators=[DataRequired()])
+    location = StringField('Update Location', validators=[DataRequired()])
+    grade = StringField('Updtae Grade', validators=[DataRequired()])
     picture = FileField('Upload New Picture (Optional)', validators=[FileAllowed(['jpg', 'png'])])
+    description = TextAreaField('Update Description')
     submit = SubmitField('Update Beta')
 
 # UptdateProfilForm
@@ -171,6 +174,7 @@ def create_beta():
         beta = Beta(name=form.name.data,
                     location=form.location.data,
                     grade=form.grade.data,
+                    description=form.description.data,
                     image_file=picture_file,
                     author=current_user)
         db.session.add(beta)
@@ -239,6 +243,7 @@ def edit_beta(beta_id):
         beta_to_edit.name = form.name.data
         beta_to_edit.location = form.location.data
         beta_to_edit.grade = form.grade.data
+        beta_to_edit.description = form.description.data
 
         if form.picture.data: # Only update the picture if a new one was uploaded
             picture_file = secure_filename(form.picture.data.filename)
@@ -254,6 +259,7 @@ def edit_beta(beta_id):
         form.name.data = beta_to_edit.name
         form.location.data = beta_to_edit.location
         form.grade.data = beta_to_edit.grade
+        form.description.data = beta_to_edit.description
 
     return render_template('edit_beta.html', title='Edit Beta', form=form)
 

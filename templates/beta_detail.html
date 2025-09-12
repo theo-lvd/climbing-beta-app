@@ -33,4 +33,11 @@
         </form>
     </div>
     {% endif %}
+
+    {% if beta.description %}
+    <article>
+        <p>{{ beta.description }}</p>
+    </article>
+    {% endif %}
+    
 {% endblock %}
